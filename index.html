@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @keyframes rotate {
+          from { transform: rotate(0); }
+          to { transform: rotate(1turn); }
+        }
+
+        .popup {
+          max-width: 90%;
+          max-height: 90%;
+          margin: 0 auto;
+          overflow: auto;
+        }
+
+        .time {
+          max-width: 100%;
+          max-height: 100%;
+        }
+
+        @media screen and (max-width: 600px) {
+          .popup {
+            max-width: 100%;
+            max-height: 100%;
+          }
+          .time {
+            max-width: 110%;
+            max-height: 110%;
+          }
+        }
+
+        .popup {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 400px;
+          height: 600px;
+          background: #161616;
+          z-index: 9999;
+          box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+          border-radius: 20px;
+        }
+
+        .time {
+          color: #fff;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-size: 50px;
+          font-weight: bold;
+          text-align: center;
+          padding-top: 50px;
+          position: relative;
+        }
+
+        .time:after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          transform: scaleX(0);
+          height: 2px;
+          bottom: 0;
+          left: 0;
+          background-color: #0087ca;
+          transform-origin: bottom right;
+          transition: transform 0.25s ease-out;
+        }
+
+        .time:hover:after {
+          transform: scaleX(1);
+          transform-origin: bottom left;
+        }
+
+        .clock {
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -130%);
+          width: 200px;
+          height: 200px;
+          background: #161616;
+          border: 2px solid #fff;
+          border-radius: 50%;
+          position: relative;
+          overflow: hidden;
+          display: flex;
+        }
+
+        .clock::before {
+          content: "";
+          width: 10px;
+          height: 10px;
+          background: #fff;
+          border-radius: 50%;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        .clockhand {
+          z-index: -1;
+          position: absolute;
+          left: calc(50% - var(--width) / 2);
+          top: 50%;
+          width: var(--width);
+          height: var(--height);
+          background-color: var(--color);
+          transform-origin: center 0;
+          border-radius: calc(var(--width) / 1.25);
+          transform: rotate(180deg);
+        }
+
+        .second {
+          --width: 5px;
+          --height: 90px;
+          --color: rgb(255, 0, 0);
+        }
+
+        .minute {
+          --width: 5px;
+          --height: 80px;
+          --color: rgb(0, 245, 245);
+        }
+
+        .hour {
+          --width: 5px;
+          --height: 70px;
+          --color: rgb(200, 240, 0);
+        }
+
+        body {
+          background: #121212;
+        }
+    </style>
+    <title>Relógio (FOX)</title>
+</head>
+<body>
+    <div class="popup">
+        <div class="clock">
+            <canvas id="numbers" width="300" height="300"></canvas>
+            <div class="clock__face">
+                <div class="clockhand second"></div>
+                <div class="clockhand minute"></div>
+                <div class="clockhand hour"></div>
+            </div>
+        </div>
+        <p class="time">
+            00:00:00
+        </p>
+    </div>
+    <script>
+        const time = document.querySelector('.time');
+        const clock = document.querySelector('.clock');
+        const hourHand = document.querySelector('.hour');
+        const minuteHand = document.querySelector('.minute');
+        const secondHand = document.querySelector('.second');
+
+        const canvas = document.getElementById('numbers');
+        const ctx = canvas.getContext('2d');
+        var radius = canvas.height / 2;
+        ctx.translate(radius, radius);
+        radius = radius * 1.02;
+
+        function updateClock() {
+          const now = new Date();
+          hours = now.getHours();
+          minutes = now.getMinutes();
+          seconds = now.getSeconds();
+          timeOfDay = hours < 12 ? 'AM' : 'PM';
+
+          hours = hours % 12;
+          hours = hours ? hours : 12;
+
+          minutes = minutes < 10 ? '0' + minutes : minutes;
+          seconds = seconds < 10 ? '0' + seconds : seconds;
+          const clock = document.getElementById('clock');
+          time.innerText = `${hours}:${minutes}:${seconds} ${timeOfDay}`;
+        };
+
+        function drawClockPointers(hours, minutes, seconds, init) {
+          if (init) {
+            document.querySelectorAll('.clockhand').forEach(hand => hand.style.transition = 'all 0.9s ease-in-out');
+          } else {
+            document.querySelectorAll('.clockhand').forEach(hand => hand.style.transition = 'all 0.5s ease-in-out');
+          }
+          hourHand.style.transform = `rotate(${(hours * 30 + (minutes / 2))+180}deg)`;
+          minuteHand.style.transform = `rotate(${(minutes * 6)+180}deg)`;
+          secondHand.style.transform = `rotate(${(seconds * 6)+180}deg)`;
+        };
+
+        function drawNumbers() {
+          var ang;
+          var num;
+          ctx.font = radius * 0.15 + "px arial";
+          ctx.textBaseline = "middle";
+          ctx.textAlign = "center";
+          for (num = 1; num < 13; num++) {
+            ang = num * Math.PI / 6;
+            ctx.fillStyle = '#fff';
+            ctx.rotate(ang);
+            ctx.translate(0, -radius * 0.85);
+            ctx.rotate(-ang);
+            ctx.fillText(num.toString(), 0, 0);
+            ctx.rotate(ang);
+            ctx.translate(0, radius * 0.85);
+            ctx.rotate(-ang);
+          };
+        };
+
+        function init() {
+          drawNumbers();
+          updateClock();
+          drawClockPointers(hours, minutes, seconds, true);
+        }
+
+        window.onload = init;
+
+        setInterval(function() {
+          updateClock();
+          drawClockPointers(hours, minutes, seconds, false);
+        }, 500);
+    </script>
+</body>
+</html>
